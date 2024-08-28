@@ -1,0 +1,202 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/add_groups.css' %}">
+
+<title>Edit Standard Dimensions</title>
+{% csrf_token %}
+<body>
+    <div id="content">
+    {% csrf_token %}
+        <div class='space-between'>
+            <h1>Edit Default Dimensions </h1>
+            <button class='add-dimension btn btn-success btn-md'>Add Dimension</button> 
+        </div>
+        <table class = 'table btn-table'>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td>Color</td>
+                    <td>Icon</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            <tbody class='dimension-table-body'>
+                {% for dimension in dimensions %}
+                    <tr>
+                        <td>
+                            <span class='table-name addable-cell'>{{ dimension.name }}</span>
+                            <input class='addable-input edit-name' value='{{ dimension.name }}'>
+                        </td>
+                        <td>
+                            <span class='table-description addable-cell'>{{ dimension.description }}</span>
+                            <textarea class='addable-input edit-description'>{{ dimension.description }}</textarea>
+                        </td>
+                        <td>
+                            <div class='table-color addable-cell' style='background: {{ dimension.color }};'></div>
+                            <input type='color' value='{{ dimension.color }}' class='addable-input edit-color'>
+                        </td>
+                        <td>
+                            <div class='table-icon addable-cell'><img class='dim-icon' src='{{ dimension.icon }}'/></div>
+                            <input type='file' class='addable-input edit-icon'>
+                        </td>
+                        <td>
+                            <span class='default-buttons'>
+                                <button class='edit-dimension btn btn-indigo btn-md'>Edit Dimension</button>
+                                <button class='delete-dimension btn btn-danger btn-md'>Delete Dimension</button>
+                            </span>
+                            <span class='edit-buttons'>
+                                <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+<script>
+
+    var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+
+    function buttonHandlers(){
+        $('.delete-dimension').off('click');
+        $('.edit-dimension').off('click');
+        $('.cancel-edit').off('click');
+        $('confirm-edit').off('click');
+
+        $('.delete-dimension').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            let name = row.find('table-name').text();
+            if(confirm('Are you sure you want to delete the dimension '+row.attr('name')+'?')){
+                $.ajax({
+                    method: 'post',
+                    dataType: 'json',
+                    url: '{% url 'delete-default-dimension' %}',
+                    data: {
+                        name: name,
+                        csrfmiddlewaretoken: csrfToken,
+                    },
+                    success: function(json){
+                        row.remove();
+                    }
+                });
+            }
+        });
+
+        $('.edit-dimension').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            row.find('.addable-input').show();
+            row.find('.edit-buttons').show();
+
+            row.find('.default-buttons').hide();
+            row.find('.table-name').hide();
+            row.find('.table-description').hide();
+            row.find('.table-color').hide();
+            row.find('.table-icon').hide();
+        });
+
+        $('.cancel-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            row.find('.addable-input').hide();
+            row.find('.edit-buttons').hide();
+
+            row.find('.default-buttons').show();
+            row.find('.table-name').show();
+            row.find('.table-description').show();
+            row.find('.table-color').show();
+            row.find('.table-icon').show();
+        });
+
+        $('.confirm-edit').on('click', function(e){
+            var formData = new FormData();
+            let row = $(this).parent().parent().parent();
+            let name = row.find('.edit-name').val();
+            let color = row.find('.edit-color').val();
+            let description = row.find('.edit-description').val();
+            let dimensionId = row.attr('id');
+            let oldName = row.find('.table-name').text();
+
+            formData.append('new_name', name);
+            formData.append('color', color);
+            formData.append('description', description);
+            formData.append('old_name', oldName);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            formData.append('icon', row.find('.edit-icon')[0].files[0]);
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                enctype: 'multipart/form-data',
+                contentType: false,
+                processData: false,
+                url: '{% url 'edit-default-dimension' %}',
+                data: formData,
+                success: function(json){
+                    row.find('.table-name').text(name);
+                    row.find('.table-description').text(description);
+                    row.find('.table-color').css('background', color);
+                    row.find('.dim-icon').attr('src', json.icon_url)
+
+                    row.find('.addable-input').hide();
+                    row.find('.edit-buttons').hide();
+
+                    row.find('.default-buttons').show();
+                    row.find('.table-name').show();
+                    row.find('.table-description').show();
+                    row.find('.table-color').show();
+                    row.find('.table-icon').show();
+                }
+            });
+        })
+    }
+
+    $('.add-dimension').on('click', function(e){
+        $('.dimension-table-body').prepend(`
+            <tr>
+                <td>
+                    <span class='table-name addable-cell'></span>
+                    <input class='addable-input edit-name' value=''>
+                </td>
+                <td>
+                    <span class='table-description addable-cell'></span>
+                    <textarea class='addable-input edit-description'></textarea>
+                </td>
+                <td>
+                    <div class='table-color addable-cell' style='background: ;'></div>
+                    <input type='color' value='' class='addable-input edit-color'>
+                </td>
+                <td>
+                    <div class='table-icon addable-cell'><img class='dim-icon'/></div>
+                    <input type='file' class='addable-input edit-icon'>
+                </td>
+                <td>
+                    <span class='default-buttons'>
+                        <button class='edit-dimension btn btn-indigo btn-md'>Edit Dimension</button>
+                        <button class='delete-dimension btn btn-danger btn-md'>Delete Dimension</button>
+                    </span>
+                    <span class='edit-buttons'>
+                        <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                        <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                    </span>
+                </td>
+            </tr>
+        `);
+
+        let row = $('.dimension-table-body').find('tr:first');
+        row.find('.addable-input').show();
+        row.find('.edit-buttons').show();
+
+        row.find('.default-buttons').hide();
+        row.find('.table-name').hide();
+        row.find('.table-description').hide();
+        buttonHandlers();
+    });
+
+
+    buttonHandlers();
+</script>

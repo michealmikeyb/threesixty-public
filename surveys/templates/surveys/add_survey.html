@@ -1,0 +1,64 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Add Survey</title>
+
+<body>
+    <div id="content">
+        <h1>Add Survey</h1>
+        <hr>
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in survey_form.hidden_fields %}
+                {{field}}
+            {% endfor %}
+            {% for field in survey_form.visible_fields %}
+                <div class="field-wrapper"{% if field.label == 'Closed' %}title='{{ default.closed_system }}'{% endif %} {% if field.label == 'Admin Email' %}style='display: none' id='admin-email'{% endif %}>
+                    <div class="field-label">{{ field.label }}:</div>
+                    <div class="field-input">{{ field }}</div>
+                </div>
+            {% endfor %}
+            {% if template %}
+                <div class="field-wrapper">
+                    <div class="field-label">Public Use:</div>
+                    <div class="field-input"><input type='checkbox' name='public-use'></div>
+                </div>
+            {% endif %}
+            <div class="button-container">
+                <a href="{% url 'landing' %}" class="btn btn-md btn-danger">Cancel</a>
+                <button class="btn btn-md btn-success">Submit</div>
+            </div>
+        </form>
+    </div>
+</body>
+<script>
+    $('#id_admin_email').parent().parent().remove();
+    $('#id_closed').on('change', function(e){
+        if($(this).is(':checked')){
+            $('#id_admin_password').parent().parent().remove();
+            $('#id_participant_password').parent().parent().remove();
+            $(this).after(`
+                <div class="field-wrapper">
+                    <div class="field-label">Admin Email:</div>
+                    <div class="field-input"><input type="text" name="admin_email" maxlength="32" required id="id_admin_email"></div>
+                </div>
+            `)
+        }
+        else{
+            $('#id_admin_email').parent().parent().remove();
+            $(this).after(`
+                <div class="field-wrapper">
+                    <div class="field-label">Admin password:</div>
+                    <div class="field-input"><input type="text" name="admin_password" maxlength="32" required id="id_admin_password"></div>
+                </div>
+            
+                <div class="field-wrapper">
+                    <div class="field-label">Participant password:</div>
+                    <div class="field-input"><input type="text" name="participant_password" maxlength="32" required id="id_participant_password"></div>
+                </div>
+            `)
+        }
+    })
+</script>

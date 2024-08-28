@@ -1,0 +1,225 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+<title>View {{ survey.name }}</title>
+<link rel="stylesheet" href="{% static 'surveys/css/view_survey.css' %}">
+
+<body>
+    <div class='container'>
+        <div class='z-depth-1 card'>
+            <h2 class='card-header'>{{ survey.name }}</h2>
+            <div class='two-col'>
+                <div class='col'>
+                    <p><strong>Open To Responses: </strong> {{ survey.survey_open }}</p>
+                    <p><strong>Welcome Message: </strong> {{ survey.welcome_message }}</p>
+                    <p><strong>Group Message: </strong> {{ survey.group_message }}</p>
+                    <p><strong>Participant Password: </strong> {{ survey.participant_password }}</p>
+                </div>
+                <div class='col'>
+                    <p><strong>Closed Survey: </strong> {{ survey.closed }}</p>
+                    <p><strong>Closing Message: </strong> {{ survey.closing_message }}</p>
+                    <p><strong>Description: </strong> {{ survey.description }}</p>
+                    <p><strong>Admin Password: </strong> {{ survey.admin_password }}</p>
+                </div>
+            </div>
+        </div>
+        <div class='z-depth-1 card'>
+            <h2 class='card-header'>Actions</h2>
+            <div class='card-container'>
+                <button class='btn {% if survey.current_session %}btn-danger{% else %}btn-success{% endif %} btn-md toggle-session'>{% if survey.current_session %}Stop{% else %}Start{% endif %}</button>
+                <a class='btn btn-indigo btn-md' href="{% url 'edit-survey' survey.id %}">Edit</a>
+                <button class='btn btn-danger btn-md delete-survey'>Delete</button>
+                <button class='btn btn-indigo btn-md duplicate-survey'>Duplicate</button>
+                <a class='btn btn-indigo btn-md' href="{% url 'add-groups' survey.id %}">Groups</a>
+                <a class='btn btn-indigo btn-md' href="{% url 'add-dimensions' survey.id %}">Dimensions</a>
+                <a class='btn btn-indigo btn-md' href="{% url 'add-questions' survey.id %}">Descriptors</a>
+                <a class='btn btn-indigo btn-md' href="{% url 'start-survey' survey.id %}">Take Survey</a>
+                <a class='btn btn-indigo btn-md' href="{% url 'survey-report' survey.id %}">Report</a>
+                <a class='btn btn-indigo btn-md' href="{% url 'survey-report-pdf' survey.id %}">PDF</a>
+                <a class='btn btn-indigo btn-md' href="{% url 'survey-data' %}?id={{ survey.id }}">Data</a>
+            </div>
+        </div>
+        <div class='z-depth-1 card'>
+            <h2 class='card-header'>Comparison Report</h2>
+            <div class='card-container'>
+            <strong>Add sessions to create a comparison report: </strong>
+                <select name='session' id='session-select'>
+                    {% for session in survey.session_set.all %}
+                        <option value='{{ session.id }}'>{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+                <button class='btn btn-indigo btn-md' id='add-session'>Add Session</button>
+                <form action='{% url 'comparison-report' survey.id %}' method='GET' id='sessions'>
+                    {% csrf_token %}
+
+                    <label for='comparison-pdf'>PDF: </label><input type='checkbox' id='comparison-pdf' name='pdf'>
+                    <br>
+                    <button class='btn btn-md btn-success generate-comparison'>Generate Report</button>
+                </form>
+            </div>
+        </div>
+        <div class='z-depth-1 card'>
+            <h2 class='card-header'>Responses</h2>
+            <div class='card-container'>
+            <table class='table'>
+                <th>
+                    <tr>
+                        <td><strong>Email</strong></td>
+                        <td><strong>Group</strong></td>
+                        <td><strong>Date Taken</strong></td>
+                        <td><strong>Session</strong></td>
+
+                    </tr>
+                </th>
+                <tbody>
+                    {% for response in survey.response_set.all %}
+                        <tr>
+                            <td>{{ response.email }}</td>
+                            <td>{{ response.group }}</td>
+                            <td>{{ response.date_taken|date:"SHORT_DATE_FORMAT" }}</td>
+                            <td>{{ response.session.name }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+<script>
+    var sessionNumber = 1
+
+    function deleteSessionHandler(){
+        $('.delete-session').off('click');
+        $('.delete-session').on('click', function(e){
+            e.preventDefault()
+            $(this).parent().remove();
+        })
+    }
+    
+    $('#add-session').on('click', function(e){
+        var sessionId = $('#session-select').val();
+        var sessionName = $('#session-select').find('option:selected').text()
+        
+        $('#sessions').prepend(`
+            <div class='response'>
+                <span><strong>Session Name: </strong>${sessionName}</span>
+                <input type='hidden' value='${sessionId}' name='session-${sessionNumber}'>
+                <span class='delete-session' title='Delete Choice'>X</span>
+            </div>
+        `);
+        sessionNumber++;
+        deleteSessionHandler();
+    });
+
+    $('.generate-comparison').on('click', function(e){
+        if($('.response').length < 2){
+            e.preventDefault();
+            alert('Please add at least 2 sessions to compare')
+        }
+    })
+
+    $('.delete-survey').on('click', function(e){
+            let row = $(this).parent().parent() 
+            let id = row.attr('id');
+            var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+            if(confirm('Are you sure you want to delete this survey? ')){
+                $.ajax({
+                    method: 'post',
+                    dataType: 'json',
+                    url: '{% url 'delete-survey' %}',
+                    data: {
+                        id: id,
+                        csrfmiddlewaretoken: csrfToken,
+                    },
+                    success: function(json){
+                        row.remove();
+                    }
+                });
+            }
+        });
+
+        $('.toggle-survey').on('click', function(e){
+            let button = $(this)
+            let id = '{{ survey.id }}';
+            var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+            
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'toggle-survey' %}',
+                data: {
+                    id: id,
+                    csrfmiddlewaretoken: csrfToken,
+                },
+                success: function(json){
+                    button.toggleClass('btn-danger');
+                    button.toggleClass('btn-success');
+
+                    if(button.is('.btn-danger')){
+                        button.text('Pause')
+                    }
+                    else{
+                        button.text('Continue')
+                    }
+                }
+            });
+        });
+
+        $('.toggle-session').on('click', function(e){
+            let button = $(this)
+            let id = '{{ survey.id }}';
+            var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+            if($(this).is('.btn-success')){
+                var name = prompt('Session Name: ', '{% now "F o" %}');
+            }
+            else{
+                if(!confirm('Are you sure you want to stop this survey? stopping it permanently stops this session and you cannot restart the session')){
+                    return ''
+                }
+            }
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'toggle-session' %}',
+                data: {
+                    id: id,
+                    csrfmiddlewaretoken: csrfToken,
+                    name: name
+                },
+                success: function(json){
+                    button.toggleClass('btn-danger');
+                    button.toggleClass('btn-success');
+
+                    if(button.is('.btn-danger')){
+                        button.text('Stop')
+                    }
+                    else{
+                        button.text('Start')
+                    }
+                }
+            });
+        });
+
+        $('.duplicate-survey').on('click', function(e){
+            let button = $(this)
+            let id = '{{ survey.id }}';
+            var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+            var name = prompt('Session Name');
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'duplicate-survey' %}',
+                data: {
+                    id: id,
+                    csrfmiddlewaretoken: csrfToken,
+                    name: name
+                },
+                success: function(json){
+                    alert('Successfully Duplicated Survey')
+                }
+            });
+        });
+</script>
+

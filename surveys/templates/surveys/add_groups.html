@@ -1,0 +1,313 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/add_groups.css' %}">
+
+<title>Add Groups</title>
+{% csrf_token %}
+<body>
+    <div id="content">
+        <h1>Add Groups to {{ survey.name }}'s Survey</h1>
+        <div class='addable space-between'>
+            <h2>Standard Groups</h2>
+            <button class='add-default btn btn-blue btn-md'>Add All Standard Groups</button>
+        </div>
+        <table class='table'>
+            <thead>
+                <tr>
+                    <td>Group Name</td>
+                    {% if survey.closed %}<td>Email List</td>{% endif %}
+                    <td>Add</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in defaults %}
+                    <tr id='{{ group|slugify }}' class='addable default'>
+                        <td><strong>{{ group }}</strong><input type='hidden' value='{{ group }}' class='group-name addable-name' name='name'></td>
+                        {% if survey.closed %}
+                            <td><select style='height:1.3rem;' class='group-emails'>
+                                {% for list in email_lists %}
+                                    <option value='{{ list.id }}'>{{ list.name }}</option>
+                                {% endfor %}
+                            </select></td>
+                        {% endif %}
+                        <td><button class='add-group add-addable btn btn-success btn-md'>Add Group</button> </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </br>
+        </br>
+        <h2>Add Your Own Group</h2>
+        <div class='group'>
+            <span>
+                Name: <input type='text' class='group-name addable-name'  name='name'>
+                <br>
+                <span {% if not survey.closed %}style='display:none'{% endif %}>
+                    Participant Emails: 
+                    <select style='height:1.3rem;' {% if not survey.closed %}style='display:none'{% endif %} class='group-emails'>
+                        {% for list in email_lists %}
+                            <option value='{{ list.id }}'>{{ list.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                </span>
+            </span>
+            <button class='add-group btn btn-success btn-md'>Add Group</button> 
+        </div>
+        </br>
+        </br>
+        <h2>Groups In This Survey</h2>
+        <table class = 'table table-striped table-responsive-md btn-table'>
+            <thead>
+                <tr>
+                    <td>Groups</td>
+                    {% if survey.closed %}<td>Email List</td>{% endif %}
+                </tr>
+            </thead>
+            <tbody class='group-table-body'>
+                {% for group in survey.group_set.all %}
+                    <tr id='{{ group.id }}' {% if group in default_groups %}class='default'{% endif %} name='{{ group.name|slugify }}'>
+                        <td>
+                            <span class='table-name'>{{ group.name }}</span>
+                            <input class='addable-input edit-input' value='{{ group.name }}'>
+                        </td>
+                        <td>
+                            <span {% if not survey.closed %}style='display:none'{% endif %} class='table-emails'>{{ group.emails }}</span>
+                            <select {% if not survey.closed %}style='display:none'{% endif %} class='addable-input edit-emails'>
+                                {% for list in email_lists %}
+                                    <option {% if list.id == group.emails.id %}selected{% endif %} value='{{ list.id }}'>{{ list.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <span class='default-buttons'>
+                                <button class='edit-group btn btn-indigo btn-md'>Edit Group</button>
+                                <button class='delete-group btn btn-danger btn-md'>Delete Group</button>
+                            </span>
+                            <span class='edit-buttons'>
+                                <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href='{% url 'add-dimensions' survey.id %}' class='btn btn-md btn-indigo'>Add Dimensions</a>
+    </div>
+</body>
+
+<script>
+
+    {% for group in survey.group_set.all %}
+        {% if group.name in defaults %}
+            $('#{{ group.name|slugify }}').hide();
+        {% endif %}
+    {% endfor %}
+
+    var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+
+    function buttonHandlers(){
+        $('.delete-group').off('click');
+        $('.edit-group').off('click');
+        $('.cancel-edit').off('click');
+        $('.confirm-edit').off('click');
+
+        $('.delete-group').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+
+            if(confirm('Are you sure you want to delete the group '+row.attr('name')+'?')){
+                $.ajax({
+                    method: 'post',
+                    dataType: 'json',
+                    url: '{% url 'delete-group' %}',
+                    data: {
+                        group_id: row.attr('id'),
+                        csrfmiddlewaretoken: csrfToken,
+                        name: name
+                    },
+                    success: function(json){
+                        if(row.is('.default')){
+                            name = row.attr('name');
+                            $('#'+name).show();   
+                        }
+                        row.remove()
+                    }
+                });
+            }
+        });
+
+        $('.edit-group').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            {% if survey.closed %}
+                row.find('.edit-emails').show();
+            {% endif %}
+            row.find('.edit-input').show();
+            row.find('.edit-buttons').show();
+
+            row.find('.default-buttons').hide();
+            row.find('.table-name').hide();
+            row.find('.table-emails').hide();
+        });
+
+        $('.cancel-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            {% if survey.closed %}
+                row.find('.edit-emails').hide();
+            {% endif %}
+            row.find('.edit-input').hide();
+            row.find('.edit-buttons').hide();
+
+            row.find('.default-buttons').show();
+            row.find('.table-name').show();
+            {% if survey.closed %}
+                row.find('.table-emails').show();
+            {% endif %}
+        });
+
+        $('.confirm-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            let name = row.find('.edit-input').val();
+            let emails = row.find('.edit-emails').val();
+            let emailName = row.find('.edit-emails').find('option:selected').text();
+            let groupId = row.attr('id');
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'edit-group' %}',
+                data: {
+                    group_id: groupId,
+                    csrfmiddlewaretoken: csrfToken,
+                    name: name,
+                    emails: emails
+                },
+                success: function(json){
+                    row.find('.table-name').text(name);
+                    row.find('.table-emails').text(emailName);
+
+                    row.find('.edit-input').hide();
+                    row.find('.edit-buttons').hide();
+                    {% if survey.closed %}
+                        row.find('.edit-emails').hide();
+                    {% endif %}
+
+                    row.find('.default-buttons').show();
+                    row.find('.table-name').show();
+                    {% if survey.closed %}
+                        row.find('.table-emails').show();
+                    {% endif %}
+                }
+            });
+        })
+    }
+
+    $('.add-group').on('click', function(e){
+        let container = $(this).parent().parent();
+        let name = container.find('.group-name').val();
+        let emails = container.find('.group-emails').val();
+        let emailName = container.find('.group-emails').find('option:selected').text();
+        let slug = name.replace('/', '').replace(/ /g, '-').replace('(', '').replace(')', '').toLowerCase();
+
+        let rowClass= '';
+        if(container.is('.default')){
+            rowClass='default';
+        }
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-group' %}',
+            data: {
+                survey_id: "{{ survey.id }}",
+                csrfmiddlewaretoken: csrfToken,
+                name: name,
+                emails: emails
+            },
+            success: function(json){
+                $('.group-table-body').prepend(`
+                    <tr id='${json.id}' class='${rowClass}' name='${slug}'>
+                        <td>
+                            <span class='table-name'>${name}</span>
+                            <input class='edit-input addable-input' value='${name}'>
+                        </td>
+                        <td>
+                            <span class='table-name' {% if not survey.closed %}style='display:none'{% endif %}>${emailName}</span>
+                            <select {% if not survey.closed %}style='display:none'{% endif %} class='addable-input edit-emails'>
+                                {% for list in email_lists %}
+                                    <option value='{{ list.id }}'>{{ list.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <span class='default-buttons'>
+                                <button class='edit-group btn btn-indigo btn-md'>Edit Group</button>
+                                <button class='delete-group btn btn-danger btn-md'>Delete Group</button>
+                            </span>
+                            <span class='edit-buttons'>
+                                <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                            </span>
+                        </td>
+                    </tr>
+                `);
+                buttonHandlers();
+                if(container.is('.default')){
+                    container.hide();
+                }
+                container.find('input').val('');
+                container.find('textarea').val('');
+            }
+        });
+    });
+
+    $('.add-default').on('click', function(e){
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-default-groups' %}',
+            data: {
+                survey_id: "{{ survey.id }}",
+                csrfmiddlewaretoken: csrfToken,
+            },
+            success: function(json){
+                $('.default').hide();
+                json.groups.forEach((group) => {
+                    let slug = group.name.replace('/', '').replace(/ /g, '-').replace('(', '').replace(')', '').toLowerCase();
+                    $('.group-table-body').append(`
+                        <tr id='${group.id}' class='default' name='${slug}'>
+                            <td>
+                                <span class='table-name'>${group.name}</span>
+                                <input class='edit-input addable-input' value='${group.name}'>
+                            </td>
+                            <td>
+                                <span class='table-name' {% if not survey.closed %}style='display:none'{% endif %}>${group.emails}</span>
+                                <select {% if not survey.closed %}style='display:none'{% endif %} class='addable-input edit-emails'>
+                                    {% for list in email_lists %}
+                                        <option value='{{ list.id }}'>{{ list.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <span class='default-buttons'>
+                                    <button class='edit-group btn btn-indigo btn-md'>Edit Group</button>
+                                    <button class='delete-group btn btn-danger btn-md'>Delete Group</button>
+                                </span>
+                                <span class='edit-buttons'>
+                                    <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                    <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                </span>
+                            </td>
+                        </tr>
+                    `);
+
+                });
+                buttonHandlers();
+            }
+        });
+    });
+
+
+    buttonHandlers();
+</script>

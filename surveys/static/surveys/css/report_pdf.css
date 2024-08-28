@@ -1,0 +1,47 @@
+body{
+    font-family: 'Times New Roman', Times, serif;
+}
+
+div{
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12px;
+}
+.navbar {
+    display: none!important;
+}
+.page {
+    min-height: 11in;
+}
+td {
+    border: 1px solid #dee2e6;
+    padding: 0.2rem;
+}
+table {
+    border-collapse: collapse;
+}
+.pdf-container{
+    margin: 1rem;
+}
+body {
+    margin-left: 0.5rem;
+}
+.page-1 {
+    margin-top: 2rem!important;
+    margin-bottom: 18rem!important;
+}
+.report-logo {
+    margin-bottom: 2rem!important;
+}
+.report-info {
+    margin-bottom: 4rem!important;
+}
+
+.footer {
+    bottom: 2px;
+    position: absolute;
+    width: 100%;
+}
+
+td{
+    font-size: 12px!important;
+}

@@ -1,0 +1,12 @@
+.collapsible-heading {
+    padding: 0.5em;
+    cursor: pointer;
+}
+.collapsible-content {
+    padding: 0.5em;
+    display: none;
+}
+
+.collapsible-container {
+    margin: 1em;
+}

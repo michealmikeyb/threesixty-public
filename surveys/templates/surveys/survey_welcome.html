@@ -1,0 +1,15 @@
+{% include 'userManagement/header.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Welcome</title>
+<body>
+    <div id='content'>
+        <h1>Welcome</h1>
+        <p>
+            {{ survey.welcome_message }}
+        </p>
+        <a href='{% if response.admin_response or survey.closed %}{% url 'take-survey' survey.id response.id %}{% else %}{% url 'group-select' survey.id response.id %}{% endif %}' class='btn btn-success btn-md'>Continue</a>
+    </div>
+</body>

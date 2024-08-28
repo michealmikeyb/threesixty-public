@@ -1,0 +1,309 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/add_groups.css' %}">
+
+<title>Edit Email Lists</title>
+{% csrf_token %}
+<body>
+    <div id="content">
+        <div class='space-between'>
+            <h1>Edit Email Lists</h1>
+            <span>
+                <button id='add-list' class='btn btn-indigo btn-md'>Create A List</button>
+                <button id='import-list' class='btn btn-indigo btn-md'>Import A List</button>
+            </span>
+        </div>
+        <strong>Select List to Edit</strong>
+        <select id='list-select' >
+            {% for list in email_lists %}
+                <option value='{{ list.id }}'>{{ list.name }}</option>
+            {% endfor %}
+        </select>
+        <button id='open-list' class='btn btn-success btn-md'>Open List</button>
+        <div id='import-inputs' style='display: none'>
+            <div class="field-wrapper">
+                <div class="field-label">List Name:</div>
+                <div class="field-input"><input type='text' class='list-name'></div>
+            </div>
+            <div class="field-wrapper">
+                <div class="field-label">Emails(comma seperated):</div>
+                <div class="field-input"><textarea class='emails'></textarea></div>
+            </div>
+            <div class="field-wrapper">
+                <div class="field-label">Name(comma seperated):</div>
+                <div class="field-input"><textarea class='names'></textarea></div>
+            </div>
+            <button class='btn btn-success btn-md' id='submit-import'>Import</button>
+        </div>
+        <h2 id='list-name'></h2>
+        <table class='table' style='display:none'>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Email</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            <tbody class='email-table-body'>
+                <tr>
+                    <td><input type='text' class='add-name'></td>
+                    <td><input type='text' class='add-email'></td>
+                    <td><button id='add-email' class='btn btn-success btn-md'>Add Email</button>
+                </tr>
+            </tbody>
+        </table>
+        {% if survey_id %}
+            <a href='{% url 'add-groups' survey_id %}' class='btn btn-md btn-success'>Add Groups</a>
+        {% endif %}
+    </div>
+</body>
+<script>
+    var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+
+
+     function buttonHandlers(){
+        $('.delete-listing').off('click');
+        $('.edit-listing').off('click');
+        $('.cancel-edit').off('click');
+        $('.confirm-edit').off('click');
+
+        $('.delete-listing').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+
+            if(confirm('Are you sure you want to delete the email '+row.attr('name')+'?')){
+                $.ajax({
+                    method: 'post',
+                    dataType: 'json',
+                    url: '{% url 'delete-email' %}',
+                    data: {
+                        email_id: row.attr('id'),
+                        csrfmiddlewaretoken: csrfToken,
+                    },
+                    success: function(json){
+                        row.remove()
+                    }
+                });
+            }
+        });
+
+        $('.edit-listing').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            row.find('.edit-name').show();
+            row.find('.edit-email').show();
+            row.find('.edit-buttons').show();
+
+            row.find('.default-buttons').hide();
+            row.find('.table-name').hide();
+            row.find('.table-email').hide();
+        });
+
+        $('.cancel-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            row.find('.edit-name').hide();
+            row.find('.edit-email').hide();
+            row.find('.edit-buttons').hide();
+
+            row.find('.default-buttons').show();
+            row.find('.table-name').show();
+            row.find('.table-email').show();
+        });
+
+        $('.confirm-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            let name = row.find('.edit-name').val();
+            let email = row.find('.edit-email').val();
+            let emailId = row.attr('id');
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'edit-email' %}',
+                data: {
+                    email_id: emailId,
+                    csrfmiddlewaretoken: csrfToken,
+                    name: name,
+                    email: email
+                },
+                success: function(json){
+                    row.find('.table-name').text(name);
+                    row.find('.table-email').text(email);
+
+                    row.find('.edit-name').hide();
+                    row.find('.edit-buttons').hide();
+                    row.find('.edit-email').hide();
+
+                    row.find('.default-buttons').show();
+                    row.find('.table-name').show();
+                    row.find('.table-email').show();
+                }
+            });
+        })
+    }
+
+    $('#add-email').on('click', function(e){
+        let container = $(this).parent().parent();
+        let name = container.find('.add-name').val();
+        let email = container.find('.add-email').val();
+        let listId = $('.email-table-body').attr('id')
+
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-email' %}',
+            data: {
+                list_id: listId,
+                csrfmiddlewaretoken: csrfToken,
+                name: name,
+                email: email
+            },
+            success: function(json){
+                $('.email-table-body').prepend(`
+                    <tr id='${json.id}' name='${name}' class='listing'>
+                        <td>
+                            <span class='table-name'>${name}</span>
+                            <input class='edit-name addable-input' value='${name}'>
+                        </td>
+                        <td>
+                            <span class='table-email' >${email}</span>
+                            <input class='edit-email addable-input' value='${email}'>
+                        </td>
+                        <td>
+                            <span class='default-buttons'>
+                                <button class='edit-listing btn btn-indigo btn-md'>Edit Email</button>
+                                <button class='delete-listing btn btn-danger btn-md'>Delete Email</button>
+                            </span>
+                            <span class='edit-buttons'>
+                                <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                            </span>
+                        </td>
+                    </tr>
+                `);
+                buttonHandlers();
+                container.find('input').val('');
+                container.find('textarea').val('');
+            }
+        });
+    });
+
+    $('#open-list').on('click', function(e){
+        let listId = $('#list-select').val();
+
+        $.ajax({
+            method: 'get',
+            dataType: 'json',
+            url: '{% url 'get-email-list' %}',
+            data: {
+                list_id: listId,
+                csrfmiddlewaretoken: csrfToken,
+            },
+            success: function(json){
+                $('.listing').remove();
+                $('.email-table-body').attr('id', listId);
+                $('#list-name').text(json.name);
+                json.emails.forEach(function (email){
+                    $('.email-table-body').prepend(`
+                        <tr id='${email.id}' name='${email.name}' class='listing'>
+                            <td>
+                                <span class='table-name'>${email.name}</span>
+                                <input class='edit-name addable-input' value='${email.name}'>
+                            </td>
+                            <td>
+                                <span class='table-email' >${email.email}</span>
+                                <input class='edit-email addable-input' value='${email.email}'>
+                            </td>
+                            <td>
+                                <span class='default-buttons'>
+                                    <button class='edit-listing btn btn-indigo btn-md'>Edit Email</button>
+                                    <button class='delete-listing btn btn-danger btn-md'>Delete Email</button>
+                                </span>
+                                <span class='edit-buttons'>
+                                    <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                    <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                </span>
+                            </td>
+                        </tr>
+                    `);
+                });
+                buttonHandlers();
+                $('.table').show();
+            }
+        });
+    });
+
+    $('#add-list').on('click', function(e){
+        let name = prompt('List Name: ')
+
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-email-list' %}',
+            data: {
+                name: name,
+                csrfmiddlewaretoken: csrfToken,
+            },
+            success: function(json){
+                $('.email-table-body').attr('id', json.id);
+                $('#list-name').text(json.name);
+                $('.listing').remove();
+                $('.table').show();
+            }
+        })
+    });
+
+    $('#import-list').on('click', function(e){
+        $('#import-inputs').toggle();
+    })
+
+    $('#submit-import').on('click', function(e){
+        let listName = $(this).parent().find('.list-name').val();
+        console.log(listName)
+        let names = $(this).parent().find('.names').val();
+        let emails = $(this).parent().find('.emails').val();
+
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'import-email-list' %}',
+            data: {
+                list_name: listName,
+                emails: emails,
+                names: names,
+                csrfmiddlewaretoken: csrfToken,
+            },
+            success: function(json){
+                json.emails.forEach((email)=>{
+                    $('.email-table-body').prepend(`
+                        <tr id='${email.id}' name='${email.name}' class='listing'>
+                            <td>
+                                <span class='table-name'>${email.name}</span>
+                                <input class='edit-name addable-input' value='${email.name}'>
+                            </td>
+                            <td>
+                                <span class='table-email' >${email.email}</span>
+                                <input class='edit-email addable-input' value='${email.email}'>
+                            </td>
+                            <td>
+                                <span class='default-buttons'>
+                                    <button class='edit-listing btn btn-indigo btn-md'>Edit Email</button>
+                                    <button class='delete-listing btn btn-danger btn-md'>Delete Email</button>
+                                </span>
+                                <span class='edit-buttons'>
+                                    <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                    <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                </span>
+                            </td>
+                        </tr>
+                    `);
+
+                })
+                $('.email-table-body').attr('id', json.id);
+                $('#list-name').text(json.name);
+                $('.table').show();
+            }
+        })
+    })
+    buttonHandlers();
+</script>

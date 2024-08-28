@@ -1,0 +1,141 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.large-logo{
+    height: 10rem;
+}
+
+.logo{
+    height: 3rem;
+}
+
+.green-line{
+    background-color: green;
+    width: 100%;
+    height: 3px;
+    margin-top: 1.5em;
+}
+body{
+    font-family: 'Times New Roman', Times, serif!important;
+}
+.right-header {
+    width: 90%;
+    text-align: right;
+    color: navy;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.page-1 {
+    text-align: center;
+    margin-top: 200px;
+    margin-bottom: 200px;
+}
+
+.report-logo {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 2em;
+}
+
+.report-info {
+    font-size: 24px;
+    margin-bottom: 6em;
+    font-weight: bold;
+}
+
+.page-2-header {
+    text-align: center;
+    color: navy;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+h3 {
+    text-decoration: underline;
+    color: navy;
+    font-weight: bold;
+}
+
+.dimension-header {
+    color: green;
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.dim-1 {
+    float: left;
+    width: 50%;
+}
+
+.dim-2 {
+    float: right;
+    width: 50%;
+}
+
+.dimension {
+    font-weight: bold;
+    font-size: 17px;
+    padding-bottom: 2.5em;
+}
+
+.bold-green {
+    color: green;
+    font-weight: bold;
+}
+
+.question-text {
+    color: #264C68;
+    font-size: 20px;
+    margin-bottom: 1em;
+}
+
+.group-name {
+    margin-bottom: 1em;
+
+}
+
+.text-answer {
+    border: thin black solid;
+    width: 100%;
+    padding: 0.5em;
+}
+
+.bold-blue {
+    color: navy;
+    font-weight: bold;
+
+}
+
+.dim-icon {
+    height: 36px;
+    width: 36px;
+}
+
+.grey-background {
+    background-color: #bbbbbb!important;
+}
+
+.table-bordered>tbody>tr>td{
+    font-weight: bold;
+    padding: 0.75rem;
+}
+
+.black-header-col {
+    background-color: black!important;
+    color: white;
+    font-size: small;
+    padding-top: 0.25rem!important;
+    padding-bottom: 0.25rem!important;
+}
+
+.white-header-col {
+    background-color: white!important;
+    font-weight: bold;
+}
+
+.striped-header-col {
+    font-weight: bold;
+}

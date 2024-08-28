@@ -1,0 +1,24 @@
+{% include 'userManagement/header.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Group Select</title>
+<body>
+    <div id='content'>
+        <h1>Select Group</h1>
+        <p>{{ survey.group_message }}</p>
+        <form method='post'>
+            {% if error %}<div class='error'>{{ error }}</div>{% endif %}
+            {% csrf_token %}
+            <label for='group'>Group: </label>
+            <select id='group' name='group'>
+                {% for group in survey.group_set.all %}
+                    <option value='{{ group.id }}'>{{ group }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type='submit' class='btn btn-success btn-md'>Continue</button>
+        </form>
+    </div>
+</body>

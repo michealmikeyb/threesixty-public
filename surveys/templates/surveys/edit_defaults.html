@@ -1,0 +1,17 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/add_groups.css' %}">
+
+<title>Edit Standard Components</title>
+{% csrf_token %}
+<body>
+    <div id="content">
+        <h1>Edit Standard Components</h1>
+        <a href='{% url 'edit-group-defaults' %}' class='btn btn-success btn-md'>Standard Groups</a>
+        <a href='{% url 'edit-dimension-defaults' %}' class='btn btn-success btn-md'>Standard Dimensions</a>
+        <a href='{% url 'edit-question-defaults' %}' class='btn btn-success btn-md'>Standard Descriptors/Questions</a>
+        <a href='{% url 'edit-survey-defaults' %}' class='btn btn-success btn-md'>Standard Content</a>
+    </div>
+</body>

@@ -1,0 +1,33 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/mdb.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+<link rel="icon" href="{% static 'images/schoolleader360_ios-150x150.png' %}" sizes="32x32">
+<link rel="icon" href="{% static 'images/schoolleader360_ios-300x300.png' %}" sizes="192x192" />
+<link rel="apple-touch-icon-precomposed" href="{% static 'images/schoolleader360_ios-300x300.png' %}" />
+
+<nav class="navbar navbar-dark">
+    <div class='container navbar-expand'>
+        <ul class='nav navbar-nav'>
+            <li>
+                <a href="{% url 'landing' %}">Home</a>
+            </li>
+            <li>
+                <a href="{% url 'add-survey' 'False' %}">Add Survey</a>
+            </li>
+        </ul>
+        <ul class='nav navbar-right'>
+            <li>
+                <a href='{% url 'logout' %}'>Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/mdb.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>

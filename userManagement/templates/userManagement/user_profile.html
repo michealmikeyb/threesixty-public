@@ -1,0 +1,49 @@
+{% load static %}
+{% include 'userManagement/navbar.html' %}
+
+<link rel="stylesheet" href="{% static 'css/user_profile.css' %}">
+
+<title>User Profile</title>
+
+<body>
+    <div id="content">
+        <a href='{% url 'logout' %}' class='btn btn-danger btn-md' style='float: right;'>Logout</a>
+        <h2>{{ user.first_name }}'s profile </h2>
+
+        <div id="grid-container">
+            {% if user.is_authenticated %}
+                <div id="departments">
+                    <h3>Departments</h3>
+                    {% if user.is_staff %}
+                        <a style="float: right;" class="confirm-button" href="{% url 'add-department' %}">Add Department</a>
+                    {% endif %}
+
+                    {% for dep in user.department_set.all %}
+                        <div class="field-wrapper">
+                            <a style="color: black;" href="{% url 'department-profile' dep.id %}">{{ dep.name }}</a>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div id="notifications">
+                    <h3>Notifications</h3>
+                </div>
+                <hr>
+                <div id="basic-info">
+                    <h3>Basic Info</h3>
+                    <div class="field-wrapper">
+                        <div class="form-label">First Name:</div>
+                        <div class="form-input">{{ user.first_name }}</div>
+                    </div>
+                    <div class="field-wrapper">
+                        <div class="form-label">Last Name:</div>
+                        <div class="form-input">{{ user.last_name }}</div>
+                    </div>
+                    <div class="field-wrapper">
+                        <div class="form-label">Email:</div>
+                        <div class="form-input">{{ user.email }}</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>

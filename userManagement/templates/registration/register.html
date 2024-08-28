@@ -1,0 +1,29 @@
+{% load static %}
+
+{% include 'userManagement/header.html' %}
+
+<title>Register</title>
+
+<body>
+    <div id="login-container" class='z-depth-1' style='margin-top: 5em;'>
+        <h2>User Registration</h1>
+        {% if form.errors %}
+            <div class="error">{{ form.errors }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class='error'>{{ form.errors }}</div>
+            {% endif %}
+            <input type='hidden' name='rid' value='{{ rid }}'>
+            {% for field in form %}
+                <div class="field-wrapper">
+                    <div class="field-label">{{ field.label }}:</div>
+                    <div class="field-input">{{ field }}</div>
+                </div>
+            {% endfor %}
+            <input class='btn btn-success btn-md' type="submit" value="register">
+        </form>
+    </div>
+</body>

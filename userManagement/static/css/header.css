@@ -1,0 +1,18 @@
+#non-nav-header {
+    padding: 1.5em;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 2em;
+    font-weight: bold;
+}
+
+.feedback-header {
+    color: #b8b631;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.feedback-header-name {
+    font-size: 32px;
+    font-weight: bold;
+}

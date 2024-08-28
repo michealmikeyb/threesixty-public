@@ -1,0 +1,37 @@
+.card {
+    margin: 2rem;
+}
+
+.card-header {
+    padding: 1 rem;
+    background-color: aquamarine;
+}
+
+.col {
+    width: 50%;
+    padding: 0.75rem;
+}
+
+.two-col {
+    display: flex;
+}
+
+.card-container {
+    margin: 0.75 rem;
+    text-align: center;
+}
+
+.btn {
+    margin: 0.75rem;
+}
+
+.response {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+.delete-session:hover {
+    background: pink;
+    cursor: pointer;
+}

@@ -1,0 +1,24 @@
+{% include 'userManagement/header.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Start Survey</title>
+<body>
+    <div class='z-depth-1 ' id='login-container'>
+        <h1>Start Survey</h1>
+        <form method='post'>
+            {% if error %}<div class='error'>{{ error }}</div>{% endif %}
+            {% csrf_token %}
+            {% if survey.email_required %}
+            <label for='email'>Email: </label>
+            <input type='text' name='email' id='email'>
+            {% endif %}
+            <br>
+            <label for='password'>Password: </label>
+            <input type='password' name='password' id='password'>
+            <br>
+            <button type='submit' class='btn btn-success btn-md'>Start Survey</button>
+        </form>
+    </div>
+</body>

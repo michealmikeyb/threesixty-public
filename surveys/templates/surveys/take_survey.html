@@ -1,0 +1,45 @@
+{% include 'userManagement/header.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Take Survey</title>
+<body>
+    <div id='content'>
+        <h2>{{ survey.name }}  </h2>
+        <hr>
+        {% for error in errors %}
+            <div class="error">{{ error }}</div>
+        {% endfor %}
+        <form method='post'>
+            {% csrf_token %}
+            <input type='hidden' name='page_number' value='{{ page_number }}'>
+            <input type='hidden' name='response_id' value='{{ response.id }}'>
+            {% for question in questions %}
+                <div class="survey-question">
+                    <strong class="question-text">{{ question.text }}</strong>
+                    {% if question.question_type == 'radio' %}
+                        <div class='choice-container'>
+                            {% for choice in question.choice_set.all %}
+                                <span class="survey-choice">
+                                    <label for='{{ question.id }}-{{ choice.option }}'>{{ choice.option }}</label> 
+                                    <input required type="radio" id='{{ question.id }}-{{ choice.option }}' name="{{ question.id }}" value="{% if question.calculating %}{{ choice.value }}{% else %}{{ choice.option }}{% endif %}">
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% elif question.question_type == 'short_answer' %}
+                        <input class="question-input" type="text" name="{{ question.id }}">
+                    {% elif question.question_type == 'long_answer' %}
+                        <textarea class="question-input" type="text" name="{{ question.id }}"></textarea>
+                    {% elif question.question_type == 'number' %}
+                        <input required class="question-input" type="number" name="{{ question.id }}">
+                    {% endif %}
+                </div>
+                <hr>
+            {% endfor %}
+            <button class="next btn btn-success btn-md">Next</div>
+        </form>
+    </div>
+</body>
+<script>
+</script>

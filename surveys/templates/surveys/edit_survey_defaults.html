@@ -1,0 +1,65 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Edit Survey Defaults</title>
+<style>
+    textarea {
+        width: 35rem;
+        height: 10rem;
+    }
+</style>
+<body>
+    <div id="content">
+        <h1>Edit Survey Defaults</h1>
+        <hr>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="field-wrapper">
+                <div class="field-label">Survey Description Default:</div>
+                <div class="field-input">
+                    <textarea name='description'>
+                        {{ default.description }}
+                    </textarea>
+                </div>
+            </div>
+            <div class="field-wrapper">
+                <div class="field-label">Survey Welcome Message Default:</div>
+                <div class="field-input">
+                    <textarea name='welcome'>
+                        {{ default.welcome }}
+                    </textarea>
+                </div>
+            </div>
+            <div class="field-wrapper">
+                <div class="field-label">Survey Closing Message Default:</div>
+                <div class="field-input">
+                    <textarea name='closing'>
+                        {{ default.closing }}
+                    </textarea>
+                </div>
+            </div>
+            <div class="field-wrapper">
+                <div class="field-label">Survey Group Message Default:</div>
+                <div class="field-input">
+                    <textarea name='group'>
+                        {{ default.group }}
+                    </textarea>
+                </div>
+            </div>
+            <div class="field-wrapper">
+                <div class="field-label">Closed System Description:</div>
+                <div class="field-input">
+                    <textarea name='closed_system'>
+                        {{ default.closed_system }}
+                    </textarea>
+                </div>
+            </div>
+            <div class="button-container">
+                <a href="{% url 'landing' %}" class="btn btn-md btn-danger">Cancel</a>
+                <button class="btn btn-md btn-success">Submit</div>
+            </div>
+        </form>
+    </div>
+</body>

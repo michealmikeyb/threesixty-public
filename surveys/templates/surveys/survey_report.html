@@ -1,0 +1,381 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/report.css' %}">
+
+{% block layout_style %}
+
+<style> @page { 
+    size: letter landscape; 
+    margin: 0.5cm; 
+    @bottom-right{
+        content: counter(page);
+    }
+    } 
+</style>
+{% endblock %}
+
+{% if pdf %}
+    <style>
+        body{
+            font-family: 'Times New Roman', Times, serif;
+        }
+    </style>
+{% endif %}
+
+<title>Survey Report</title>
+<body>
+    <div {% if pdf %}class='pdf-container' {% else %} class='container'{% endif %} style="font-family: 'Times New Roman', Times, serif;">
+        <div class='header'>
+            <img src="{% static 'images/logo.png' %}" class='logo'>
+            <div class='right-header'>
+                <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                <div class='green-line'></div>
+            </div>
+                
+
+        </div>
+        <div class='page-1'>
+            <div class='report-logo'>
+                <img src="{% static 'images/360.png' %}" class='logo'> 360 Report
+            </div>
+            <div class='report-info'>
+                {{ survey.name|title }}
+                <br>
+                {% now "F j, Y" %}
+            </div>
+            <div >
+                <img class='large-logo' src="{% static 'images/logo-large.png' %}" class='logo'>
+            </div>
+        </div>
+        <div class='page-2 page'>
+            {% if pdf %}
+                <div class='header'>
+                    <img src="{% static 'images/logo.png' %}" class='logo'>
+                    <div class='right-header'>
+                        <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                        <div class='green-line'></div>
+                    </div>   
+                </div>
+            {% endif %}
+            <div class='page-2-header'>
+                LLA <span style='color: green;'>Leader 360 Report</span><br>
+                {{ survey.name|title }} Leadership Survey {% now "Y" %}
+            </div>
+            <h3>Overview</h3>
+            <p>
+                {{ report_settings.overview_paragraph_1 }}
+            </p>
+            <div class='dimension-header'>The dimensions chosen by your organization for this assessment were:</div>
+            <div>
+            {% for dimension in survey.dimension_set.all %}
+                <div class="dimension {% cycle 'dim-1' 'dim-2' %}">
+                    {% if dimension.icon %}
+                        <img src='{{ dimension.icon.url }}' class='dim-icon'>
+                    {% endif %}
+                    <span {% if dimension.color %}style='color:{{ dimension.color }}'{% endif %}>{{ dimension.name }}</span>
+                    <div style='font-weight: normal'>{{dimension.description}}</div>
+                </div>
+            {% endfor %}
+            </div>
+            <div style='display: inline-block; '>
+                {{ report_settings.overview_paragraph_2 }}
+            </div>
+            <br>
+            <br>
+            {% if pdf %}
+                <div class='footer'>
+                    <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                    <div class='green-line'></div>
+                </div>
+            {% endif %}
+        </div>
+        <div class='page-3 page'>
+            {% if pdf %}
+                <div class='header'>
+                    <img src="{% static 'images/logo.png' %}" class='logo'>
+                    <div class='right-header'>
+                        <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                        <div class='green-line'></div>
+                    </div>   
+                </div>
+            {% endif %}
+            <h3>Response Types, Groups and Survey Management</h3>
+            <p>
+                <span class='bold-green'>Response Types:</span>
+                {{ report_settings.response_types }}
+            </p>
+            <p>
+                <span class='bold-green'>Groups:</span>
+                {{ report_settings.groups_paragraph_1 }}
+                <br>
+                <br>
+                {% for group in survey.group_set.all %}{{ group }}<br>{% endfor %}
+                <br>
+                {{ report_settings.groups_paragraph_2 }}
+            </p>
+            <p>
+                <span class='bold-green'>Self Assessment:</span>
+                {{ report_settings.self_assessment }}
+            </p>
+            <p>
+                <span class='bold-green'>Survey Management:</span>
+                {{ report_settings.survey_management }}
+            </p>
+            {% if pdf %}
+                <div class='footer'>
+                    <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                    <div class='green-line'></div>
+                </div>
+            {% endif %}
+        </div>
+        <div class='page-4 page'>
+            {% if pdf %}
+                <div class='header'>
+                    <img src="{% static 'images/logo.png' %}" class='logo'>
+                    <div class='right-header'>
+                        <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                        <div class='green-line'></div>
+                    </div>   
+                </div>
+            {% endif %}
+            <h3> This Leader's Data</h3>
+            <p>
+                <span class='bold-green'>Table 1:</span>
+                {{ report_settings.table_1_explination }}
+            </p>
+            <table class='table table-bordered'>
+                <thead>
+                    <tr>
+                        <td class='black-header-col' colspan='{{ top_col_span }}'>Table 1</td>
+                        <td class='black-header-col' colspan='2'>Overall</td>
+                        <td class='black-header-col' colspan='2'>Admin</td>
+                    </tr>
+                    <tr >
+                        <td class='white-header-col'></td>
+                        {% for group in dimension_responses.0.groups %}
+                            <td colspan='2' class='white-header-col'>{{ group.name }}</td>
+                        {% endfor %}
+                        <td class='white-header-col' colspan='2' >
+                            Total
+                        </td>
+                        <td class='white-header-col'>
+                            Admin
+                        </td>
+                        <td class='white-header-col'>
+                            Difference
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class='striped-header-col'>Dimension</td>
+                        {% for group in dimension_responses.0.groups %}
+                            <td class='striped-header-col grey-background'>Avg. Score</td>
+                            <td class='striped-header-col'># Resp.</td>
+                        {% endfor %}
+                        <td class='striped-header-col grey-background'>Avg. Score</td>
+                        <td class='striped-header-col'># Resp.</td>
+                        <td class='striped-header-col grey-background'></td>
+                        <td class='striped-header-col'></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dim in dimension_responses %}
+                        <tr>
+                            <td {% if dim.color %}style='color:{{ dim.color }}'{% endif %}>{{ dim.name }}</td>
+                            {% for group in dim.groups %}
+                                <td class='grey-background'>{{ group.avg|floatformat:2 }}</td>
+                                <td>{{ group.num_resp }}</td>
+                            {% endfor %}
+                            <td class='grey-background'>{{ dim.dimension_average|floatformat:2 }}</td>
+                            <td>{{ num_responses }}</td>
+                            <td class='grey-background'>{{ dim.admin_average|floatformat:2 }}</td>
+                            <td>{{ dim.difference|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if pdf %}
+                <div class='footer'>
+                    <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                    <div class='green-line'></div>
+                </div>
+            {% endif %}
+        </div>
+        <div class='page-5 page'>
+            {% if pdf %}
+                <div class='header'>
+                    <img src="{% static 'images/logo.png' %}" class='logo'>
+                    <div class='right-header'>
+                        <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                        <div class='green-line'></div>
+                    </div>   
+                </div>
+            {% endif %}
+            <p>
+                <span class='bold-green'>Table 2:</span>
+                {{ report_settings.table_2_explination }}
+            </p>
+            <table class='table table-bordered'>
+                <thead>
+                    <tr>
+                        <td>Descriptor</td>
+                        <td>Dimension</td>
+                        <td class='grey-background'>Self</td>
+                        <td>Overall Avg.</td>
+                        <td class='grey-background'>Difference</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in all_questions %}
+                        <tr>
+                            <td>{{ q.text }}</td>
+                            <td {% if q.dimension_color %}style='color:{{ q.dimension_color }};'{% endif %}>{{ q.dimension }}</td>
+                            <td class='grey-background'>{{ q.admin_response|floatformat:2 }}</td>
+                            <td>{{ q.average|floatformat:2 }}</td>
+                            <td class='grey-background'>{{ q.difference|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if pdf %}
+                <div class='footer'>
+                    <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                    <div class='green-line'></div>
+                </div>
+            {% endif %}
+        </div>
+        {% if option_questions %}
+            <div class='page-6 page'>
+                {% if pdf %}
+                    <div class='header'>
+                        <img src="{% static 'images/logo.png' %}" class='logo'>
+                        <div class='right-header'>
+                            <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                            <div class='green-line'></div>
+                        </div>   
+                    </div>
+                {% endif %}
+                <h3> Option Questions</h3>
+                <p>
+                    <span class='bold-green'>Table 3:</span>
+                    {{ report_settings.table_3_explination }}
+                </p>
+                {% for question in option_questions %}
+                    <strong>{{question.text}}</strong>
+                    <table class='table table-bordered'>
+                        <thead>
+                            <tr>
+                                <td></td>
+                                {% for group in question.0.groups %}
+                                    <td>{{ group.name }}</td>
+                                {% endfor %}
+                                <td>
+                                    Total
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for option in question.options %}
+                                <tr>
+                                    <td>{{ option.name }}</td>
+                                    {% for group in option.groups %}
+                                        <td>{{ group.percent|floatformat:2 }}%</td>
+                                    {% endfor %}
+                                    <td>{{ option.percent|floatformat:2 }}%</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endfor %}
+                {% if pdf %}
+                    <div class='footer'>
+                        <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                        <div class='green-line'></div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div class='page-7 page'>
+            {% if pdf %}
+                <div class='header'>
+                    <img src="{% static 'images/logo.png' %}" class='logo'>
+                    <div class='right-header'>
+                        <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                        <div class='green-line'></div>
+                    </div>   
+                </div>
+            {% endif %}
+            <p>
+                <span class='bold-green'>Table 4 :</span>
+                {{ report_settings.table_4_explination }}
+            </p>
+            {% for q in text_questions %}
+                <strong class='question-text'>{{forloop.counter}}. {{ q.text }} </strong>
+                {% with answers=q.answer_set.all %}
+                    {% for group in survey.group_set.all %}
+                        <div class='bold-green group-name'>{{ group.name }}</div>
+                        <div style='min-height: 3rem;'>
+                        Answers:
+                        {% for answer in answers %}
+                            {% if answer.response.group == group %}
+                                <div class='text-answer'>{{ answer.answer }}</div>
+                            {% endif %}
+                        {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% endwith %}
+                <hr>
+            {% endfor %}
+            {% if pdf %}
+                <div class='footer'>
+                    <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                    <div class='green-line'></div>
+                </div>
+            {% endif %}
+        </div>
+        <div class='page-8 page'>
+            {% if pdf %}
+                <div class='header'>
+                    <img src="{% static 'images/logo.png' %}" class='logo'>
+                    <div class='right-header'>
+                        <div class='header-text'>Leader 360 - {% now "F j, Y" %} </div>
+                        <div class='green-line'></div>
+                    </div>   
+                </div>
+            {% endif %}
+            <h3>Reflecting on 360 Feedback</h3>
+            <p>
+                {{ report_settings.reflecting_intro }}
+            </p>
+            <div class='bold-blue'>A few things to consider: </div>
+            <ul>
+                {% for setting in report_settings.things_to_consider %}
+                <li>{{ setting }}</li>
+                {% endfor %}
+            </ul>
+            <div class='bold-green'>Positive Feedback</div>
+            <ul>
+                {% for setting in report_settings.positive_feedback %}
+                <li>{{ setting }}</li>
+                {% endfor %}
+            </ul>
+            <div class='bold-green'>Negative Feedback</div>
+            <ul>
+                {% for setting in report_settings.negative_feedback %}
+                <li>{{ setting }}</li>
+                {% endfor %}
+            </ul>
+            <br>
+            <br>
+            Suggestions for further reading <a href='https://www.schoolleader360.com/resources'>Here</a>
+            <br>
+            <br>
+            <div class='footer'>
+                <div class='bold-blue'>{{ survey.name|title }} Leadership Survey {% now "Y" %}</div>
+                <div class='green-line'></div>
+            </div>
+            <br>
+        </div>
+    </div>
+</body>

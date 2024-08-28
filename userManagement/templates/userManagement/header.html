@@ -1,0 +1,61 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/mdb.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<style>
+#non-nav-header {
+    {% if user.headersettings %}
+    background: {{ user.headersettings.background }};
+    {% elif survey.user.headersettings %}
+    background: {{ survey.user.headersettings.background }};
+    {% else %}
+    background: black;
+    {% endif %}
+    padding: 1.5em;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 2em;
+    font-weight: bold;
+}
+
+.feedback-header {
+    color: #b8b631;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.feedback-header-name {
+    {% if user.headersettings %}
+    color: {{ user.headersettings.color }};
+    {% elif survey.user.headersettings %}
+    color: {{ survey.user.headersettings.color }};
+    {% else %}
+    color: #C2EFF0;
+    {% endif %}
+    font-size: 32px;
+}
+.logo {
+    height: 7rem;
+}
+@media only screen and (max-device-width: 768px) {
+    p{
+        font-size: x-large;
+    }
+
+}
+</style>
+<div id='non-nav-header'>
+    {% if survey %}
+        <div>
+            <div class='feedback-header'>Feedback For:</div>
+            <div class='feedback-header-name'>{{ survey.name }}</div>
+        </div>
+    {% endif %}
+    <img class='logo' src="{% if user.headersettings %}{{ user.headersettings.logo.url }}{% elif survey.user.headersettings %}{{ survey.user.headersettings.logo.url }}{% else %}{% static 'images/square_logo-360.png' %}{% endif %}" >
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/mdb.min.js' %}"></script>

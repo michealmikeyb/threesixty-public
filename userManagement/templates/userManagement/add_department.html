@@ -1,0 +1,33 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+
+<title>Add department</title>
+
+<body>
+    <div id="content">
+        <h2>Add Department</h2>
+        <hr>
+        {% if form.errors %}
+            <div class="error">{{ form.errors }}</div>
+        {% endif %}
+        <form method="POST" action="{% url 'add-department' %}">
+            {% csrf_token %}
+            {% for field in form.visible_fields %}
+                <div class="field-wrapper">
+                    <div class="field-label">{{ field.label }}:</div>
+                    <div class="field-input">{{ field }}</div>
+                </div>
+            {% endfor %}
+            <div>
+            {% for field in form.hidden_fields %}
+                {{field}}
+            {% endfor %}
+            </div>
+            <div class="button-container">
+                <a href="{% url 'user-profile' %}" class="cancel-button">Cancel</a>
+                <button class="confirm-button">Submit</div>
+            </div>
+        </form
+    </div>
+</body>

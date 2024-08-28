@@ -1,0 +1,24 @@
+
+{% include 'userManagement/header.html' %}
+<title>Login</title>
+<body>
+    <div id="login-container" class='z-depth-1'>
+        <h2>Login</h2>
+        {% if form.errors %}
+            <div class="error">{{ form.errors }}</div>
+        {% endif %}
+        {% if next %}
+            <div class="error">Access Denied</div>
+        {% endif %}
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <label for="id_username">Username: </label> {{ form.username }}
+            <br>
+            <label for="id_password">Password: </label>{{ form.password }}
+            <br>
+            <input class='btn btn-success btn-md' type="submit" value="login">
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+        <a href='{% url 'forgot-password' %}'>Forgot Password?</a>
+    </div>
+</body>

@@ -1,0 +1,15 @@
+{% include 'userManagement/header.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+
+<title>Closing</title>
+<body>
+    <div id='content'>
+        <h1>Finished</h1>
+        <p>
+            {{ survey.closing_message }}
+        </p>
+        {% if user.is_authenticated %}<a href='{% url 'view-survey' survey.id %}'>Back to surveys page</a>{% endif %}
+    </div>  
+</body>

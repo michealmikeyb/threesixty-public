@@ -1,0 +1,42 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+<title>Surveys</title>
+
+
+<style>
+    h2 {
+        font-weight: bold;
+        font-size: larger;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    h1 {
+        font-weight: bold;
+        font-size: x-large;
+    }
+</style>
+<body>
+    <div id="content" style='margin-top:1.5em; margin-bottom:5rem;'>
+    <div class='space-between'>
+        <h1>{{ survey.name }} Created</h1>
+        {% if num_email_lists == 0  and survey.closed%}
+            <a href='{% url 'email-lists' survey.id %}' class='btn btn-md btn-success'>Add Email Lists</a>
+        {% else %}
+            <a href='{% url 'add-groups' survey.id %}' class='btn btn-md btn-success'>Add Groups</a>
+        {% endif %}
+    </div>
+    <h2>Description</h2>
+    {{ survey.description }}
+    
+    <h2>Welcome Message</h2>
+    {{ survey.welcome_message }}
+    
+    <h2>Group Message</h2>
+    {{ survey.group_message }}
+    
+    <h2>Closing Message</h2>
+    {{ survey.closing_message }}
+    
+    </div>
+
+</body>

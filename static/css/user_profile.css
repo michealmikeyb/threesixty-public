@@ -1,0 +1,30 @@
+#basic-info {
+    grid-area: basic;
+}
+
+#departments {
+    grid-area: departments;
+}
+
+#notifications {
+    grid-area: notifications;
+}
+
+#grid-container {
+    display: grid;
+    grid-template-areas: 
+    'basic notifications'
+    'departments notifications'
+}
+
+
+@media
+only screen and (max-width: 960px) {
+    #grid-container {
+        display: grid;
+        grid-template-areas: 
+        'basic'
+        'departments'
+        'notifications'
+    }
+}

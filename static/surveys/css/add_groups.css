@@ -1,0 +1,63 @@
+.addable {
+    margin-bottom: 1em;
+}
+
+
+.edit-buttons {
+    display: none;
+}
+
+.addable-input {
+    display: none;
+    width: 100%;
+}
+
+.dimension-description {
+    width: 100%;
+}
+
+.add-default {
+    float: right;
+}
+
+.btn {
+    height: 3rem;
+}
+
+.select2 {
+    width: 15rem!important;
+}
+
+.table-color {
+ height: 1.5rem;
+ width: 3rem;
+}
+
+.delete-choice:hover {
+    background: pink;
+    cursor: pointer;
+}
+
+.confirm {
+    background-color: lightgreen; 
+    text-align: center;
+    border-radius: 0.4rem;
+    padding: 0.25rem;
+    display: none;
+}
+
+.dim-icon {
+    width: 64px;
+    height: 64px;
+}
+
+h2 {
+    font-weight: bold; 
+    font-size:x-large;
+}
+
+h1 {
+    font-weight: bold; 
+    font-size:xx-large;
+
+}

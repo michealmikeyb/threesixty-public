@@ -1,0 +1,615 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/add_groups.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/collapsible_heading.css' %}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.9/css/select2.min.css" rel="stylesheet" />
+
+<title>Add Descriptors</title>
+{% csrf_token %}
+<body>
+    <div id="content">
+        <h1>Add Descriptors</h1>
+        {% for dimension in survey.dimension_set.all %}
+            <div class='collapsible-container z-depth-1' id='{{ dimension.id }}'>
+                <div class='confirm'>Defaults Added</div>
+                <div class='collapsible-heading space-between' style='background: {{ dimension.color }};'>
+                    <h2>{{ dimension.name }}</h2>
+                    <span>
+                        <button class='add-all btn btn-md btn-light' name='{{dimension.name }}'>Add All Descriptors</button>
+                        <button class='btn btn-md btn-light' name='{{dimension.name }}'>View/Select Descriptors</button>
+                        <span class='arrow'>⌄</span>
+                    </span>
+                </div>
+                <div class='collapsible-content'>
+                    <h3>Standard Descriptors</h2>
+                    <table class='table'>
+                        <thead>
+                            <tr>
+                                <td>Text</td>
+                                <td>Groups</td>
+                                <td></td>
+                                <td>Add</td>
+                            </tr>
+                        </thead>
+                        {% for question in defaults %}
+                            {% if question.dimension == dimension.name %}
+                                <tr class='addable default' id='{{ question.text|slugify }}'>
+                                    <td>{{ question.text }}</td>
+                                    <td>
+                                        <select name='group-input' class='group-input' multiple>
+                                            {% for group in survey.group_set.all %}
+                                                <option value='{{ group.id }}' selected>{{ group.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <input type='hidden' class='text-input' value='{{ question.text }}'>
+                                    <input type='hidden' class='dimension-input' value='{{ dimension.id }}'>
+                                    <input type='hidden' class='type-input' value='{{ question.type }}'>
+                                    <td><input type='checkbox' class='calculating-input' style='display:none;' checked></td>
+                                    {% if question.type == "radio" %}
+                                        {% for choice in question.choices %}
+                                            <td class='choice' style='display: none;'>
+                                                <input type='hidden' class='choice-text' value='{{ choice.0 }}'>
+                                                <input type='hidden' class='choice-value' value='{{ choice.1 }}'>
+                                            </td>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <td><button class='add-descriptor add-addable btn btn-success btn-md'>Add Descriptor</button></td> 
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
+                    <h3>Add Your Own Descriptor</h3>
+                    <div class='addable space-between' style='position: relative'>
+                        <span>
+                            Text:<input type='text' class='text-input'>
+                                <input type='hidden' class='dimension-input' value='{{ dimension.id }}'>
+                                <br>
+                            Type:<select name='type-input' class='type-input'>
+                                    {% for choice in type_choices %}
+                                        <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                                <br>
+                            Groups:<select name='group-input' class='group-input' multiple>
+                                    {% for group in survey.group_set.all %}
+                                        <option value='{{ group.id }}' selected>{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <br>
+                            Calculating:<input type='checkbox' class='calculating-input' name='calculating-input' checked>
+                            <div class='choice-container'>
+                                <table class='table table-striped'>
+                                    <thead>
+                                        <tr>
+                                            <td>Text</td>
+                                            <td class='value-header'>Value</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class='choice'>
+                                            <td><input type='text' class='choice-text'></td>
+                                            <td><input type='text' class='choice-value'></td>
+                                            <td class='delete-choice' title='Delete Choice'>X</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <button class='add-choice btn btn-blue btn-md'>Add Choice</button>
+                                <button class='add-likert btn btn-blue btn-md'>Add Likert Choices</button>
+                            </div>
+                        </span>
+                        <div style='position: absolute; bottom: 0; right: 0;'><button class='add-descriptor add-addable btn btn-success btn-md'>Add Descriptor</button></div>
+                    </div>
+                    <h3>Descriptors In This Survey</h3>
+                    <table class='table table-striped table-responsive-md btn-table'>
+                        <thead>
+                            <tr>
+                                <td>Text</td>
+                                <td>Type</td>
+                                <td>Groups (Leave Blank for All)</td>
+                                <td>Calculating</td>
+                                <td>Choices</td>
+                                <td>Actions</td>
+                            </tr>
+                        </thead>
+                        <tbody class='descriptor-table-body'>
+                            {% for question in dimension.question_set.all %}
+                                <tr id='{{ question.id }}' {% if question.text in default_texts %}class='default' name='{{ question.text|slugify }}'{% endif %}>
+                                    <td>
+                                        <span class='addable-cell text-cell'>{{ question.text }}</span>
+                                        <input type='text' class='addable-input text-input' value='{{ question.text }}'>
+                                    </td>
+                                    <td>
+                                        <span class='addable-cell type-cell'>{{ question.question_type }}</span>
+                                        <select name='type-input' class='addable-input type-input'>
+                                            {% for choice in type_choices %}
+                                                <option value='{{ choice.0 }}' {% if choice.0 == question.question_type %}selected{% endif %}>{{ choice.1 }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <span class='addable-cell group-cell'>{{ question.groups.all|join:', ' }}</span>
+                                        <select name='group-input' class='addable-input group-input' multiple>
+                                            {% for group in survey.group_set.all %}
+                                                <option value='{{ group.id }}'{% if group in question.groups.all %}selected{% endif %}>{{ group.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <span class='addable-cell calculating-cell'>{{ question.calculating }}</span>
+                                        <input type='checkbox' class='addable-input calculating-input' name='calculating-input' {% if question.calculating %}checked{% endif %}>
+                                    </td>
+                                    <td> 
+                                        {% if question.question_type == "radio" %}
+                                            <span class='addable-cell choice-cell'> 
+                                                {% for choice in question.choice_set.all %} 
+                                                    {{ choice.option }}: {{ choice.value }},    
+                                                {% endfor %}    
+                                            </span> 
+                                            <span class='choice-container'>
+                                                {% for choice in question.choice_set.all %}
+                                                    <div class='choice addable-input '> 
+                                                        <input type='text' class='choice-text' value='{{ choice.option }}'> :
+                                                        <input type='text' class='choice-value' value='{{ choice.value }}'>
+                                                        <span class='delete-choice' title='Delete Choice'>X</span>
+                                                    </div>    
+                                                {% endfor %} 
+                                                <button style='width: 10rem;' class='btn btn-success btn-md addable-input add-table-choice'>Add Choice</button>
+                                            </span>  
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class='default-buttons'>
+                                            <button class='edit-question btn btn-indigo btn-md'>Edit Descriptor</button>
+                                            <button class='delete-question btn btn-danger btn-md'>Delete Descriptor</button>
+                                        </span>
+                                        <span class='edit-buttons'>
+                                            <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                            <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}    
+        <a href='{% url 'view-survey' survey.id %}' class='btn btn-md btn-indigo'>View Survey</a>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.9/js/select2.min.js"></script>
+<script>
+    {% for dimension in survey.dimension_set.all %}
+        {% for question in dimension.question_set.all %}
+            {% if question.text in default_texts %}
+                $('#{{ question.text|slugify }}').hide();
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    function slugify(string) {
+        const a = 'àáäâãåăæąçćčđďèéěėëêęğǵḧìíïîįłḿǹńňñòóöôœøṕŕřßşśšșťțùúüûǘůűūųẃẍÿýźžż·/_,:;'
+        const b = 'aaaaaaaaacccddeeeeeeegghiiiiilmnnnnooooooprrsssssttuuuuuuuuuwxyyzzz------'
+        const p = new RegExp(a.split('').join('|'), 'g')
+
+        return string.toString().toLowerCase()
+            .replace(/\s+/g, '-') // Replace spaces with -
+            .replace(p, c => b.charAt(a.indexOf(c))) // Replace special characters
+            .replace(/&/g, '-and-') // Replace & with 'and'
+            .replace(/[^\w\-]+/g, '') // Remove all non-word characters
+            .replace(/\-\-+/g, '-') // Replace multiple - with single -
+            .replace(/^-+/, '') // Trim - from start of text
+            .replace(/-+$/, '') // Trim - from end of text
+    }
+    
+    var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+    
+    function deleteChoiceHandler(){
+        $('.delete-choice').off('click')
+        $('.delete-choice').on('click', function(e){
+            $(this).parent().remove();
+        });
+    }
+    $(document).ready(function() {
+
+        $('.add-choice').on('click', function(e){
+            let container = $(this).parent();
+            container.find('tbody').append(`
+            <tr class='choice'>
+                <td><input type='text' class='choice-text'></td>
+                <td><input type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            `);
+            deleteChoiceHandler();
+        });
+
+        $('.calculating-input').on('change', function(e){
+            if($(this).is(':checked')){
+                $(this).parent().find('.choice-value').show();
+                $(this).parent().find('.value-header').show();
+            }
+            else {
+                $(this).parent().find('.choice-value').hide();
+                $(this).parent().find('.value-header').hide();
+            }
+        })
+
+        $('.add-likert').on('click', function(e){
+            let container = $(this).parent();
+            container.find('tbody').empty();
+            container.find('tbody').append(`
+            <tr class='choice'>
+                <td><input value='No Response' type='text' class='choice-text'></td>
+                <td><input value='' type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            <tr class='choice'>
+                <td><input value='Strongly Disagree' type='text' class='choice-text'></td>
+                <td><input value='1' type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            <tr class='choice'>
+                <td><input value='Disagree' type='text' class='choice-text'></td>
+                <td><input value='2' type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            <tr class='choice'>
+                <td><input value='Neutral' type='text' class='choice-text'></td>
+                <td><input value='3' type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            <tr class='choice'>
+                <td><input value='Agree' type='text' class='choice-text'></td>
+                <td><input value='4' type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            <tr class='choice'>
+                <td><input  value='Strongly Agree' type='text' class='choice-text'></td>
+                <td><input value='5' type='text' class='choice-value'></td>
+                <td class='delete-choice' title='Delete Choice'>X</td>
+            </tr>
+            `);
+            deleteChoiceHandler();
+        });
+
+
+        $('.collapsible-heading').on('click', function(){
+            var content = $(this).parent().find('.collapsible-content');
+            var heading = $(this);
+
+            if(content.is(':hidden') || !content.is(':visible')){
+                heading.toggleClass('expanded-heading');
+                content.slideDown();
+                $(this).find('.arrow').html('⌃')
+            }
+            else{
+                content.slideUp(400, ()=>{
+                    heading.toggleClass('expanded-heading');
+                    $(this).find('.arrow').html('⌄')
+                });
+            }
+        });
+    });
+
+    $('.add-descriptor').on('click', function(e){
+        let container = $(this).parent().parent();
+        let text = container.find('.text-input').val();
+        let calculating = container.find('.calculating-input').is(':checked');
+        let type = container.find('.type-input').val();
+        let dimension = container.find('.dimension-input').val();
+        let groups = []
+        let groupNames = []
+        if (container.find('.group-input').val())
+            groups = container.find('.group-input').val();
+            container.find('.group-input').find('option:selected').each(function(e){
+                groupNames.push($(this).text())
+            });
+            
+        let choices = [];
+        
+        container.find('.choice').each(function(index){
+            choices.push({text: $(this).find('.choice-text').val(), value: $(this).find('.choice-value').val()});
+        });
+
+        let rowClass= '';
+        if(container.is('.default')){
+            rowClass='default';
+        }
+        let slug = slugify(text);
+
+        let calculatingChecked = '';
+        if(calculating){
+            calculatingChecked = 'checked'
+        }
+
+        let blankInput=0
+        container.find('.choice-container').find('input:visible').each(function(i){
+            if($(this).val() == ''){
+                blankInput++;
+            }
+        })
+        if(blankInput>1){
+            alert('Can only have 1 choice with no response')
+        }
+        else{
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'add-question' %}',
+                data: {
+                    survey_id: "{{ survey.id }}",
+                    csrfmiddlewaretoken: csrfToken,
+                    text: text,
+                    type: type,
+                    dimension: dimension,
+                    groups: groups,
+                    choices: choices,
+                    calculating: calculating
+                },
+                success: function(json){
+                    let choiceInput = '';
+                    choices.forEach((choice)=>{choiceInput = choiceInput+`<div class='choice addable-input '> 
+                                                                    <input type='text' class='choice-text' value='${choice.text}'> :
+                                                                    <input type='text' class='choice-value' value='${choice.value}'>
+                                                                    <span class='delete-choice' title='Delete Choice'>X</span>
+                                                                </div>`});
+
+                    container.parent().parent().parent().find('.descriptor-table-body').prepend(`
+                        <tr id="${json.id}" class="${rowClass}" name="${slug}">
+                            <td>
+                                <span class='addable-cell text-cell'>${text}</span>
+                                <input type='text' class='addable-input text-input' value='${text}'>
+                            </td>
+                            <td>
+                                <span class='addable-cell type-cell'>${type}</span>
+                                <select name='type-input' class='addable-input type-input'>
+                                    {% for choice in type_choices %}
+                                        <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <span class='addable-cell group-cell'>${groupNames.map((group)=>{return group})}</span>
+                                <select name='group-input' class='group-input addable-input' multiple>
+                                    {% for group in survey.group_set.all %}
+                                        <option value='{{ group.id }}'>{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <span class='addable-cell calculating-cell'>${calculating}</span>
+                                <input type='checkbox' class='addable-input calculating-input' name='calculating-input' ${calculatingChecked}>
+                            </td>
+                            <td>
+                                <span class='addable-cell choice-cell'>${choices.map((choice)=>{return choice.text+':'+choice.value})}</span>
+                                ${choiceInput}
+                            </td>
+                            <td>
+                                <span class='default-buttons'>
+                                    <button class='edit-question btn btn-indigo btn-md'>Edit Descriptor</button>
+                                    <button class='delete-question btn btn-danger btn-md'>Delete Descriptor</button>
+                                </span>
+                                <span class='edit-buttons'>
+                                    <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                    <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                </span>
+                            </td>
+                        </tr>
+                    `);
+                    if(container.is('.default')){
+                        container.hide();
+                    }
+                    buttonHandlers();
+                    container.find('input').val('');
+                    container.find('tbody').empty();
+                    container.find('.dimension-input').val(dimension);
+                }
+            });
+        }
+    });
+
+    $('.add-all').on('click', function(e){
+        e.stopPropagation();
+        let name = $(this).attr('name')
+        let container = $(this).parent().parent().parent();
+
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-default-questions' %}',
+            data: {
+                survey_id: "{{ survey.id }}",
+                csrfmiddlewaretoken: csrfToken,
+                name: name
+            },
+            success: function(json){
+                json.questions.forEach((question)=>{
+                    let choiceInput = '';
+                    let calculatingChecked = ''
+                    if(question.calculating){
+                        calculatingChecked = 'checked'
+                    }
+                    question.choices.forEach((choice)=>{choiceInput = choiceInput+`<div class='choice addable-input '> 
+                                                                    <input type='text' class='choice-text' value='${choice[0]}'> :
+                                                                    <input type='text' class='choice-value' value='${choice[1]}'>
+                                                                    <span class='delete-choice' title='Delete Choice'>X</span>
+                                                                </div>`});
+
+                    container.find('.descriptor-table-body').prepend(`
+                        <tr id="${question.id}" class="default" name="${slugify(question.text)}">
+                            <td>
+                                <span class='addable-cell text-cell'>${question.text}</span>
+                                <input type='text' class='addable-input text-input' value='${question.text}'>
+                            </td>
+                            <td>
+                                <span class='addable-cell type-cell'>${question.type}</span>
+                                <select name='type-input' class='addable-input type-input'>
+                                    {% for choice in type_choices %}
+                                        <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <span class='addable-cell group-cell'></span>
+                                <select name='group-input' class='group-input addable-input' multiple>
+                                    {% for group in survey.group_set.all %}
+                                        <option value='{{ group.id }}'>{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <span class='addable-cell calculating-cell'>${question.calculating}</span>
+                                <input type='checkbox' class='addable-input calculating-input' name='calculating-input' ${calculatingChecked}>
+                            </td>
+                            <td>
+                                <span class='addable-cell choice-cell'>${question.choices.map((choice)=>{return choice[0]+':'+choice[1]})}</span>
+                                ${choiceInput}
+                            </td>
+                            <td>
+                                <span class='default-buttons'>
+                                    <button class='edit-question btn btn-indigo btn-md'>Edit Descriptor</button>
+                                    <button class='delete-question btn btn-danger btn-md'>Delete Descriptor</button>
+                                </span>
+                                <span class='edit-buttons'>
+                                    <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                    <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                </span>
+                            </td>
+                        </tr>
+                    `);
+                })
+                container.find('.addable.default').hide();
+                container.find('.confirm').fadeIn(1000).delay(2000).fadeOut(1000);
+                buttonHandlers();
+            }
+        });
+
+    })
+
+    function buttonHandlers(){
+        $('confirm-edit').off('click');
+        $('.delete-question').off('click');
+        $('.group-input').select2();
+        $('.descriptor-table-body').find('.select2').hide();
+
+        $('.confirm-edit').on('click',function(e){
+            let row = $(this).parent().parent().parent();
+            let text = row.find('.text-input').val();
+            let type = row.find('.type-input').val();
+            let calculating = row.find('.calculating-input').is(':checked');
+            let groups = []
+            let groupNames = [];
+            if (row.find('.group-input').val())
+                groups = row.find('.group-input').val();
+                row.find('.group-input').find('option:selected').each(function(e){
+                    groupNames.push($(this).text())
+                });
+            let choices = [];
+            row.find('.choice').each(function(index){
+                choices.push({text: $(this).find('.choice-text').val(), value: $(this).find('.choice-value').val()});
+            });
+            questionId = row.attr('id');
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'edit-question' %}',
+                data: {
+                    question_id: questionId,
+                    csrfmiddlewaretoken: csrfToken,
+                    text: text,
+                    type: type,
+                    groups: groups,
+                    choices: choices,
+                    calculating: calculating
+                },
+                success: function(json){
+                    row.find('.text-cell').html(text);
+                    row.find('.type-cell').html(type);
+                    row.find('.calculating-cell').html(calculating);
+                    row.find('.group-cell').html(groupNames.map((group)=>{return group+', '}));
+                    row.find('.choice-cell').html(choices.map((choice)=>{return choice.text+':'+choice.value+', '}));
+
+                    row.find('.edit-buttons').hide();
+                    row.find('.default-buttons').show();
+
+                    row.find('.addable-input').hide();
+                    row.find('.addable-cell').show();
+                    row.find('.select2').hide();
+                }
+            });
+        });
+
+        $('.delete-question').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            let id = row.attr('id');
+            if(confirm('Are you sure you want to delete this descriptor ?')){
+                $.ajax({
+                    method: 'post',
+                    dataType: 'json',
+                    url: '{% url 'delete-question' %}',
+                    data: {
+                        id: row.attr('id'),
+                        csrfmiddlewaretoken: csrfToken,
+                    },
+                    success: function(json){
+                        if(row.is('.default')){
+                            name = row.attr('name');
+                            $('#'+name).show();   
+                        }
+                        row.remove()
+                    }
+                });
+            }
+        });
+
+        $('.edit-question').on('click', function(e){
+            let container = $(this).parent().parent().parent();
+
+            container.find('.edit-buttons').show();
+            container.find('.default-buttons').hide();
+
+            container.find('.addable-input').show();
+            container.find('.addable-cell').hide();
+            container.find('.select2').show();
+        });
+
+        $('.cancel-edit').on('click', function(e){
+            let container = $(this).parent().parent().parent();
+
+            container.find('.edit-buttons').hide();
+            container.find('.default-buttons').show();
+
+            container.find('.addable-input').hide();
+            container.find('.addable-cell').show();
+            container.find('.select2').hide();
+        });
+
+        $('.add-table-choice').on('click', function(e){
+            $(this).parent().prepend(`
+                <div class='choice addable-input '> 
+                    <input type='text' class='choice-text'> :
+                    <input type='text' class='choice-value'>
+                    <span class='delete-choice'>X</span>
+                </div>                                              
+            `)
+            $(this).parent().find(':first').show()
+
+        });
+
+        $('.type-input').on('change', function(e){
+            let value = $(this).val();
+            if(value == 'radio'){
+                $(this).parent().parent().find('.choice-container').show();
+            }
+            else{
+                $(this).parent().parent().find('.choice-container').hide();
+            }
+        })
+        deleteChoiceHandler();
+
+    }
+    buttonHandlers();
+</script>

@@ -1,0 +1,37 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+
+<title>Edit Survey header</title>
+
+<body>
+    <div id="content">
+        <h1>Edit Survey Header</h1>
+        <hr>
+        {% if form.errors %}
+            <div class="error">{{ form.errors }}</div>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form.visible_fields %}
+                <div class="field-wrapper">
+                    <div class="field-label">{{ field.label }}:</div>
+                    <div class="field-input">{{ field }}</div>
+                </div>
+            {% endfor %}
+            <div>
+            {% for field in form.hidden_fields %}
+                {{field}}
+            {% endfor %}
+            </div>
+            <div class="button-container">
+                <a href="{% url 'user-profile' %}" class="btn btn-danger btn-md">Cancel</a>
+                <button class="btn btn-success btn-md">Submit</div>
+            </div>
+        </form
+    </div>
+</body>
+<script>
+    $('#id_color').attr('type', 'color');
+    $('#id_background').attr('type', 'color');
+</script>

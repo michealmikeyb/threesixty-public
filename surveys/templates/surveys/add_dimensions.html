@@ -1,0 +1,311 @@
+{% include 'userManagement/navbar.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}">
+<link rel="stylesheet" href="{% static 'surveys/css/add_groups.css' %}">
+
+<title>Add Dimensions</title>
+{% csrf_token %}
+<body>
+    <div id="content">
+        <h1>Add Dimensions to {{ survey.name }}'s Survey</h1>
+        <div class='addable'>
+            <h2>Standard Dimensions</h2>
+            <button class='add-default add-default-dimensions btn btn-blue btn-md'>Add All Standard Dimensions</button>
+        </div>
+        <table class='table'>
+            {% for dimension in defaults %}
+                <tr id='{{ dimension.name|slugify }}' class='addable default'>
+                    <td style='color:{{dimension.color}}'>{{ dimension.name }}</td>
+                    <td>{{ dimension.description|truncatechars:50 }}</td>
+                    <td><img class='dim-icon' src='{{ dimension.icon }}'</td>
+                    <input type='hidden' value='{{ dimension.name }}' class='dimension-name addable-name' name='name'>
+                    <input type='hidden' value='{{ dimension.color }}' class='dimension-color addable-name' name='color'>
+                    <input type='hidden' value='{{ dimension.icon }}' class='dimension-icon addable-name' name='icon'>
+                    <input type='hidden' class='dimension-description addable-name' name='name' value="{{ dimension.description }}">
+                    <td><button class='add-dimension add-addable btn btn-success btn-md'>Add Dimension</button></td>
+                </tr>
+            {% endfor %}
+        </table>
+        </br>
+        <h2>Add Your Own Dimension</h2>
+        <div class='addable'>
+            <span>
+                <strong>Name: </strong><input type='text' class='dimension-name addable-name'  name='name'>
+                <br>
+                <strong>Description: </strong><textarea class='dimension-description'></textarea>
+                <strong>Color: </strong><input value='#6f6ef1' type='color' class='dimension-color'>
+                <br>
+                <strong>Icon: </strong><input type='file' class='dimension-icon'>
+            </span>
+            <button class='add-dimension add-addable btn btn-success btn-md'>Add Dimension</button> 
+        </div>
+        </br>
+        <h2>Dimensions In This Survey</h2>
+        <table class = 'table table-striped table-responsive-md btn-table'>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td>Color</td>
+                    <td>Icon</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            <tbody class='dimension-table-body'>
+                {% for dimension in survey.dimension_set.all %}
+                    <tr id='{{ dimension.id }}' {% if dimension.name in default_names %}class='default' name='{{ dimension.name|slugify }}'{% endif %}>
+                        <td>
+                            <span style='color:{{dimension.color}}' class='table-name addable-cell'>{{ dimension.name }}</span>
+                            <input class='addable-input edit-name' value='{{ dimension.name }}'>
+                        </td>
+                        <td>
+                            <span class='table-description addable-cell'>{{ dimension.description }}</span>
+                            <textarea class='addable-input edit-description'>{{ dimension.description }}</textarea>
+                        </td>
+                        <td>
+                            <input type='color' value='{{ dimension.color }}' class='addable-input edit-color'>
+                        </td>
+                        <td>
+                            <div class='table-icon addable-cell'><img class='dim-icon' src='{% if dimension.icon %}{{ dimension.icon.url }}{% endif %}'/></div>
+                            <input type='file' class='addable-input edit-icon'>
+                        </td>
+                        <td>
+                            <span class='default-buttons'>
+                                <button class='edit-dimension btn btn-indigo btn-md'>Edit Dimension</button>
+                                <button class='delete-dimension btn btn-danger btn-md'>Delete Dimension</button>
+                            </span>
+                            <span class='edit-buttons'>
+                                <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href='{% url 'add-questions' survey.id %}' class='btn btn-md btn-indigo'>Add Descriptors</a>
+    </div>
+</body>
+
+<script>
+    {% for dimension in survey.dimension_set.all %}
+        {% if dimension.name in default_names %}
+            $('#{{ dimension.name|slugify }}').hide();
+        {% endif %}
+    {% endfor %}
+
+    var csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+
+    function buttonHandlers(){
+        $('.delete-dimension').off('click');
+        $('.edit-dimension').off('click');
+        $('.cancel-edit').off('click');
+        $('confirm-edit').off('click');
+
+        $('.delete-dimension').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            if(confirm('Are you sure you want to delete the dimension '+row.attr('name')+'?')){
+                $.ajax({
+                    method: 'post',
+                    dataType: 'json',
+                    url: '{% url 'delete-dimension' %}',
+                    data: {
+                        dimension_id: row.attr('id'),
+                        csrfmiddlewaretoken: csrfToken,
+                    },
+                    success: function(json){
+                        if(row.is('.default')){
+                            name = row.attr('name');
+                            $('#'+name).show();   
+                        }
+                        row.remove();
+                    }
+                });
+            }
+        });
+
+        $('.edit-dimension').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            row.find('.addable-input').show();
+            row.find('.edit-buttons').show();
+
+            row.find('.default-buttons').hide();
+            row.find('.table-name').hide();
+            row.find('.table-description').hide();
+        });
+
+        $('.cancel-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            row.find('.addable-input').hide();
+            row.find('.edit-buttons').hide();
+
+            row.find('.default-buttons').show();
+            row.find('.table-name').show();
+            row.find('.table-description').show();
+        });
+
+        $('.confirm-edit').on('click', function(e){
+            let row = $(this).parent().parent().parent();
+            let name = row.find('.edit-name').val();
+            let color = row.find('.edit-color').val();
+            let description = row.find('.edit-description').val();
+            let dimensionId = row.attr('id');
+            
+            let formData = new FormData();
+            formData.append('name', name)
+            formData.append('dimension_id', dimensionId)
+            formData.append('csrfmiddlewaretoken', csrfToken)
+            formData.append('description', description)
+            formData.append('color', color)
+            formData.append('icon', row.find('.edit-icon')[0].files[0]);
+
+            $.ajax({
+                method: 'post',
+                dataType: 'json',
+                url: '{% url 'edit-dimension' %}',
+                enctype: 'multipart/form-data',
+                contentType: false,
+                processData: false,
+                data: formData,
+                success: function(json){
+                    row.find('.table-name').text(name);
+                    row.find('.table-description').text(description);
+                    row.find('.table-color').css('background', color);
+                    row.find('.dim-icon').attr('src', json.icon_url)
+
+                    row.find('.addable-input').hide();
+                    row.find('.edit-buttons').hide();
+
+                    row.find('.default-buttons').show();
+                    row.find('.table-name').show();
+                    row.find('.table-description').show();
+                }
+            });
+        })
+    }
+
+    $('.add-dimension').on('click', function(e){
+        let rowClass = '';
+        let container = $(this).parent().parent();
+        let formData = new FormData();
+        if(container.is('.default')){
+            rowClass='default';
+            var icon = container.find('.dimension-icon').val();
+        }
+        else{
+            container = $(this).parent();
+            var icon = container.find('.dimension-icon')[0].files[0];
+        }
+        let name = container.find('.dimension-name').val();
+        let description = container.find('.dimension-description').val();
+        let color = container.find('.dimension-color').val();
+        let slug = name.replace('/', '').replace(/ /g, '-').replace('(', '').replace(')', '').toLowerCase();
+
+        formData.append('name', name);
+        formData.append('color', color);
+        formData.append('description', description);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        formData.append('icon', icon);
+        formData.append('survey_id', '{{ survey.id }}');
+
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-dimension' %}',
+            enctype: 'multipart/form-data',
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function(json){
+                $('.dimension-table-body').prepend(`
+                    <tr id='${json.id}' class='${rowClass}' name='${slug}'>
+                        <td>
+                            <span style='color:${color}' class='table-name addable-cell'>${name}</span>
+                            <input class='addable-input edit-name' value='${name}'>
+                        </td>
+                        <td>
+                            <span class='table-description addable-cell'>${description}</span>
+                            <textarea class='addable-input edit-description'>${description}</textarea>
+                        </td>
+                        <td>
+                            <input type='color' class='addable-input edit-color' value='${color}'>
+                        </td>
+                        <td>
+                            <div class='table-icon addable-cell'><img class='dim-icon' src='${json.icon}'/></div>
+                            <input type='file' class='addable-input edit-icon'>
+                        </td>
+                        <td>
+                            <span class='default-buttons'>
+                                <button class='edit-dimension btn btn-indigo btn-md'>Edit Dimension</button>
+                                <button class='delete-dimension btn btn-danger btn-md'>Delete Dimension</button>
+                            </span>
+                            <span class='edit-buttons'>
+                                <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                            </span>
+                        </td>
+                    </tr>
+                `);
+                buttonHandlers();
+                if(container.is('.default')){
+                    container.hide();
+                }
+                container.find('input').val('');
+                container.find('textarea').val('');
+            }
+        });
+    });
+
+    $('.add-default-dimensions').on('click', function(e){
+        $.ajax({
+            method: 'post',
+            dataType: 'json',
+            url: '{% url 'add-default-dimensions' %}',
+            data: {
+                survey_id: "{{ survey.id }}",
+                csrfmiddlewaretoken: csrfToken,
+            },
+            success: function(json){
+                $(' .default').hide();
+                json.dimensions.forEach((dimension) => {
+                    let slug = dimension.name.replace('/', '').replace(/ /g, '-').replace('(', '').replace(')', '').toLowerCase();
+                    $('.dimension-table-body').append(`
+                        <tr id='${dimension.id}' class='default' name='${slug}'>
+                            <td>
+                                <span style='color:${dimension.color}' class='table-name addable-cell'>${dimension.name}</span>
+                                <input class='edit-name addable-input' value='${dimension.name}'>
+                            </td>
+                            <td>
+                                <span class='table-description addable-cell'>${dimension.description}</span>
+                                <textarea class='edit-description addable-input'>${dimension.description}</textarea>
+                            </td>
+                            <td>
+                                <input type='color' class='addable-input edit-color' value='${dimension.color}'>
+                            </td>
+                            <td>
+                                <div class='table-icon addable-cell'><img class='dim-icon' src='${dimension.icon}'/></div>
+                                <input type='file' class='addable-input edit-icon'>
+                            </td>
+                            <td>
+                                <span class='default-buttons'>
+                                    <button class='edit-dimension btn btn-indigo btn-md'>Edit Dimension</button>
+                                    <button class='delete-dimension btn btn-danger btn-md'>Delete Dimension</button>
+                                </span>
+                                <span class='edit-buttons'>
+                                    <button class='confirm-edit btn btn-success btn-md'>Confirm Edit</button>
+                                    <button class='cancel-edit btn btn-danger btn-md'>Cancel Edit</button>
+                                </span>
+                            </td>
+                        </tr>
+                    `);
+
+                })
+                buttonHandlers();
+            }
+        });
+    });
+
+
+    buttonHandlers();
+</script>
